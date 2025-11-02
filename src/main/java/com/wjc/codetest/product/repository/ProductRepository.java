@@ -24,14 +24,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * 문제: @Query("SELECT DISTINCT p.category FROM Product p")는 단순하지만,
-     *      대소문자/공백이 다른 중복 카테고리를 구분하지 못할 수 있음.
-     * 원인: 카테고리 데이터가 정규화되지 않은 상태에서 DISTINCT 사용.
-     * 개선안: 저장 시 category를 trim()/대문자 변환 등으로 정규화하거나,
-     *        쿼리에서 LOWER/TRIM을 적용해 중복 제거를 일관성 있게 수행.
-     *        Enum 또는 별도 Category 테이블로 분리하는 것도 고려.
-     *
-     * 예시:
-     *  @Query("SELECT DISTINCT TRIM(LOWER(p.category)) FROM Product p")
+     *      데이터가 수만 건 이상일 경우 전체 테이블 스캔이 발생하여 성능 저하 가능성이 높음.
+     *      특히 LOWER/TRIM 같은 함수가 추가되면 인덱스를 활용하지 못해 정렬·중복 제거 비용이 커짐.
+     * 원인: category 컬럼이 비정규화된 상태(중복, 대소문자 차이 등)
+     *      DISTINCT 쿼리가 전체 데이터를 대상으로 수행됨.
+     * 개선안: Category를 별도 테이블로 분리하고 Product는 FK(category_id)로 참조.
+     *     → 카테고리 조회 시 수십~수백 건 수준으로 조회 범위 축소.
+     *     → UNIQUE 제약으로 중복·오타 방지.
+     *      단기적으로는 category 컬럼에 인덱스 생성 및 저장 시 정규화(trim/lower)
      */
     @Query("SELECT DISTINCT p.category FROM Product p")
     List<String> findDistinctCategories();

@@ -31,6 +31,23 @@ import java.util.List;
  * 개선안: 각 요청 DTO에 검증 애너테이션 추가 후, 컨트롤러 메서드 파라미터에 @Valid 명시.
  *         전역 예외 처리에서 MethodArgumentNotValidException을 캐치해 400 응답으로 변환.
  */
+
+ /**
+ * 문제: API 버전 정보가 적용되지 않아, 추후 스펙 변경이나 기능 추가 시
+ *      기존 클라이언트와의 하위 호환성을 유지하기 어려움.
+ *      또한 동일한 URI 경로에서 여러 버전의 API가 혼재될 경우 충돌 위험이 있음.
+ * 원인:
+ *  - @RequestMapping 경로에 버전 구분(/api/v1 등)이 누락됨
+ *  - 초기 설계 단계에서 API 버저닝 전략이 고려되지 않음
+ * 개선안:
+ *  - @RequestMapping("/api/v1/resource")와 같이 버전 및 리소스를 함께 명시
+ *  - 새로운 버전 추가 시 /api/v2/... 형태로 확장
+ *  - 버전 경로를 상수화하여(ApplicationConstant 등) 일관성 있게 관리
+ * 검증:
+ *  - 버전별 코드 분리로 유지보수성과 가독성 향상
+ *  - API 변경 시 기존 사용자 영향 최소화
+ *  - 장기적으로 확장성과 테스트 효율성 확보
+ */
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
